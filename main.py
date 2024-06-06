@@ -1,6 +1,6 @@
 import pdfplumber
 import argparse
-import openai
+from openai import OpenAI
 
 def extract_text_from_pdf(filename):
     all_text = []
@@ -18,14 +18,18 @@ def extract_text_from_pdf(filename):
     return all_text
 
 def call_chatgpt(pdf_text, user_prompt): 
-    openai.api_key = '' 
-    response = openai.Completions.create(
-        model="text-davinci-003",
-        prompt=f"{pdf_text}\n\nUser Prompt: {user_prompt}",
-        max_tokens=150
+    client = OpenAI()
+    content = f"{pdf_text}\n\n{user_prompt}"
+    response = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {
+            "role": "user", 
+            "content": content,
+            }
+        ]
     )
-
-    return response.choice[0].text.strip() 
+    print(response.choices[0].message.content.strip())
     
 
 def process_text_with_chatgpt(all_text): 
@@ -60,7 +64,6 @@ def main():
 
     if text:
         all_text = extract_text_from_pdf(filename)
-        print(all_text)
         process_text_with_chatgpt(all_text)
     
     if table: 
